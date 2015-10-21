@@ -31,3 +31,6 @@ _testmain.go
 .idea
 *.iml
 .realsync
+
+web/*.yaml
+web/*.sqlite
