@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/Sirupsen/logrus"
-	core "github.com/seesawlabs/ivan-kirichenko-exercise"
+	app "github.com/seesawlabs/ivan-kirichenko-exercise/application"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -23,20 +23,22 @@ func main() {
 		logger.Fatal(err.Error())
 	}
 
-	app, err := core.NewApp(config, logger)
+	logger.Infof("creating application with config %+v", config)
+	application, err := app.NewApp(config, logger)
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	app.Run()
+	logger.Infoln("starting the application...")
+	application.Run()
 }
 
-func readConfig(path string) (*core.Config, error) {
+func readConfig(path string) (*app.Config, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not read config: %s", err.Error())
 	}
-	config := &core.Config{}
+	config := &app.Config{}
 	if err := yaml.Unmarshal(content, config); err != nil {
 		return nil, fmt.Errorf("could not parse yaml config file '%s': %s", path, err.Error())
 	}

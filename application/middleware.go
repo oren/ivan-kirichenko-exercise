@@ -21,10 +21,10 @@ func getJwtAuthMiddleware(key string) echo.HandlerFunc {
 		}
 
 		auth := c.Request().Header.Get("Authorization")
-		l := len(Bearer)
+		l := len(bearer)
 
 		if len(auth) > l+1 && auth[:l] == bearer {
-			t, err := jwt.Parse(auth[l+1:], func(token *jwt.Token) (interface{}, error) {
+			_, err := jwt.Parse(auth[l+1:], func(token *jwt.Token) (interface{}, error) {
 
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -32,8 +32,14 @@ func getJwtAuthMiddleware(key string) echo.HandlerFunc {
 
 				return []byte(key), nil // key must not come from token itself
 			})
+
+			if err != nil {
+				return c.JSON(http.StatusUnauthorized, NewApiError(http.StatusUnauthorized, err.Error(), nil))
+			}
+
+			return nil
 		}
 
-		return echo.NewHTTPError(http.StatusUnauthorized)
+		return c.JSON(http.StatusUnauthorized, ErrorUnautorized)
 	}
 }

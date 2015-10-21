@@ -26,6 +26,7 @@ type app struct {
 // NewApp instantiates and initializes new application
 func NewApp(config *Config, logger *logrus.Logger) (*app, error) {
 	a := &app{}
+	a.config = config
 	a.server = echo.New()
 	a.logger = logger
 
@@ -43,6 +44,8 @@ func (a *app) Run() {
 }
 
 func (a *app) initMiddleware() {
+	a.logger.Infoln("initializing middleware..")
+	defer a.logger.Infoln("initializing middleware finished")
 	// Middleware
 	a.server.Use(echologrus.NewWithNameAndLogger("web", a.logger))
 	a.server.Use(mw.Recover())
@@ -50,6 +53,9 @@ func (a *app) initMiddleware() {
 }
 
 func (a *app) initDb() error {
+	a.logger.Infoln("initializing database..")
+	defer a.logger.Infoln("initializing database finished")
+
 	db, err := gorm.Open("sqlite3", "/tmp/gorm.db")
 	if err != nil {
 		return err
@@ -57,7 +63,7 @@ func (a *app) initDb() error {
 	if err := db.DB().Ping(); err != nil {
 		return err
 	}
-	a.db = db
+	a.db = &db
 
 	return nil
 }
