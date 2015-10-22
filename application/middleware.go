@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/seesawlabs/ivan-kirichenko-exercise/handler"
 
 	"github.com/labstack/echo"
 )
@@ -34,12 +35,12 @@ func getJwtAuthMiddleware(key string) echo.HandlerFunc {
 			})
 
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, NewApiError(http.StatusUnauthorized, err.Error(), nil))
+				return c.JSON(http.StatusUnauthorized, handler.NewApiError(err.Error()))
 			}
 
 			return nil
 		}
 
-		return c.JSON(http.StatusUnauthorized, ErrorUnautorized)
+		return c.JSON(http.StatusUnauthorized, handler.NewApiError("no or incorrect authorization token provided"))
 	}
 }
