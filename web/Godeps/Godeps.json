@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/seesawlabs/ivan-kirichenko-exercise",
+	"ImportPath": "github.com/seesawlabs/ivan-kirichenko-exercise/web",
 	"GoVersion": "go1.5",
 	"Deps": [
 		{
@@ -12,6 +12,15 @@
 			"Rev": "9a7e6e11e56b86acf9433023b21166b75d596899"
 		},
 		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v2.3.0-7-gacc5a5f",
+			"Rev": "acc5a5f31e3493f1992315fd85aa49226372b810"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/gorm",
+			"Rev": "d35a44c5b123c3a44c95beeff5d0f1f8bce6ed3b"
+		},
+		{
 			"ImportPath": "github.com/labstack/echo",
 			"Comment": "v1.2.0-17-g38d3cb5",
 			"Rev": "38d3cb57301df3d70b6bc70536b7a0b9a757f34d"
@@ -22,12 +31,25 @@
 			"Rev": "3c613419957bbd5afea3fc87bbc0f9f2dca19196"
 		},
 		{
+			"ImportPath": "github.com/lib/pq/hstore",
+			"Comment": "go1.0-cutoff-51-ga8d8d01",
+			"Rev": "a8d8d01c4f91602f876bf5aa210274e8203a6b45"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Rev": "542ae647f8601bafd96233961b150cae198e0295"
+		},
+		{
 			"ImportPath": "golang.org/x/net/http2",
 			"Rev": "ddbc69e05bd1d66853fca7216e1f380c3b8e4b25"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
 			"Rev": "ddbc69e05bd1d66853fca7216e1f380c3b8e4b25"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "eca94c41d994ae2215d455ce578ae6e2dc6ee516"
 		}
 	]
 }
