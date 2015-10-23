@@ -20,7 +20,7 @@ type TokenStorage interface {
 }
 
 func GetOauthHandler(appid, secret, redirectUrl string, csrfStorage TokenStorage) func(c *echo.Context) error {
-	// oauthUrlResponse is a type which is used only within oauth handlers
+	// oauthUrlResponse is a type which is used only within oauth handler
 	type oauthUrlResponse struct {
 		Url     string `json:"url"`
 		Message string `json:"message"`
@@ -48,6 +48,7 @@ func GetOauthHandler(appid, secret, redirectUrl string, csrfStorage TokenStorage
 }
 
 func GetOauthVerifyHandler(appid, secret, redirectUrl string, csrfStorage, tokenStorage TokenStorage) func(c *echo.Context) error {
+	// oauthVerifyResponse is a type which is used only within oauth verify handler
 	type oauthVerifyResponse struct {
 		AccessToken string `json:"access_token"`
 		Expires     uint64 `json:"expires"`
