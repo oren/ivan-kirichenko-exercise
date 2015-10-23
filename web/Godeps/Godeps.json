@@ -40,12 +40,28 @@
 			"Rev": "542ae647f8601bafd96233961b150cae198e0295"
 		},
 		{
+			"ImportPath": "github.com/pmylund/go-cache",
+			"Rev": "a122e14c4b8ee69022f62f24ba85cb36ce844366"
+		},
+		{
+			"ImportPath": "github.com/rs/cors",
+			"Rev": "eb527c8097e0f19a3ff7b253a3fe70545070f420"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "2cba614e8ff920c60240d2677bc019af32ee04e5"
+		},
+		{
 			"ImportPath": "golang.org/x/net/http2",
-			"Rev": "ddbc69e05bd1d66853fca7216e1f380c3b8e4b25"
+			"Rev": "2cba614e8ff920c60240d2677bc019af32ee04e5"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "ddbc69e05bd1d66853fca7216e1f380c3b8e4b25"
+			"Rev": "2cba614e8ff920c60240d2677bc019af32ee04e5"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "038cb4adce85ed41e285c2e7cc6221a92bfa44aa"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
