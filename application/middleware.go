@@ -1,10 +1,12 @@
 package application
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/pmylund/go-cache"
 	"github.com/seesawlabs/ivan-kirichenko-exercise/handler"
 
 	"github.com/labstack/echo"
@@ -13,7 +15,7 @@ import (
 const bearer = "Bearer"
 
 // A JSON Web Token middleware
-func getJwtAuthMiddleware(key string) echo.HandlerFunc {
+func getJwtAuthMiddleware(key string, tokenStorage *cache.Cache) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 
 		// Skip WebSocket
@@ -29,6 +31,16 @@ func getJwtAuthMiddleware(key string) echo.HandlerFunc {
 
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				}
+
+				accessToken, found := token.Header["access_token"].(string)
+				if !found {
+					return nil, errors.New("access token was not provided")
+				}
+
+				_, isValid := tokenStorage.Get(accessToken)
+				if !isValid {
+					return nil, errors.New("access token has expired, try to authenticate again")
 				}
 
 				return []byte(key), nil // key must not come from token itself

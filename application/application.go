@@ -1,20 +1,27 @@
 package application
 
 import (
+	"time"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/deoxxa/echo-logrus"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pmylund/go-cache"
+	"github.com/rs/cors"
 	"github.com/seesawlabs/ivan-kirichenko-exercise/model"
 )
 
 // Config defines application config
 type Config struct {
-	ListenAddress string `yaml:"listen"`
-	DbFile        string `yaml:"db_file"`
-	JwtSecret     string `yaml:"jwt_secret"`
+	ListenAddress    string `yaml:"listen"`
+	DbFile           string `yaml:"db_file"`
+	JwtSecret        string `yaml:"jwt_secret"`
+	OauthAppId       string `yaml:"oauth_appid"`
+	OauthSecret      string `yaml:"oauth_secret"`
+	OauthRedirectUrl string `yaml:"oauth_redirect"`
 }
 
 type Runnable interface {
@@ -26,20 +33,28 @@ type Migratable interface {
 }
 
 type app struct {
-	config *Config
-	logger *logrus.Logger
-	server *echo.Echo
-	db     *gorm.DB
+	config       *Config
+	logger       *logrus.Logger
+	server       *echo.Echo
+	db           *gorm.DB
+	csrfStorage  *cache.Cache
+	tokenStorage *cache.Cache
 }
 
 // NewApp instantiates and initializes new application
 func NewApp(config *Config, logger *logrus.Logger) (Runnable, error) {
 	a := &app{}
 	a.config = config
-	a.server = echo.New()
 	a.logger = logger
 
-	a.initMiddleware()
+	a.server = echo.New()
+	a.server.Use(echologrus.NewWithNameAndLogger("web", a.logger))
+	a.server.Use(mw.Recover())
+	a.server.Use(cors.Default().Handler)
+
+	a.csrfStorage = cache.New(5*time.Minute, 30*time.Second)
+	a.tokenStorage = cache.New(5*time.Minute, 30*time.Second)
+
 	if err := a.initDb(); err != nil {
 		return nil, err
 	}
@@ -65,15 +80,6 @@ func (a *app) Run() {
 
 func (a *app) Migrate() error {
 	return a.db.AutoMigrate(&model.Task{}).Error
-}
-
-func (a *app) initMiddleware() {
-	a.logger.Infoln("initializing middleware...")
-	defer a.logger.Infoln("initializing middleware finished")
-	// Middleware
-	a.server.Use(echologrus.NewWithNameAndLogger("web", a.logger))
-	a.server.Use(mw.Recover())
-	a.server.Use(getJwtAuthMiddleware(a.config.JwtSecret))
 }
 
 func (a *app) initDb() error {
