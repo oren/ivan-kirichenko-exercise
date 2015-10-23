@@ -4,3 +4,4 @@ jwt_secret: somemegasecret
 oauth_appid: 112233
 oauth_secret: somemegasecret
 oauth_redirect: http://localhost:8080/auth_verify
+session_secret: somemegasecret

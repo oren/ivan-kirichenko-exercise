@@ -1,8 +1,13 @@
 package lib
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
+	"hash"
 )
 
 // GenerateRandomBytes returns securely generated random bytes.
@@ -28,4 +33,43 @@ func GenerateRandomBytes(n int) ([]byte, error) {
 func GenerateRandomString(s int) (string, error) {
 	b, err := GenerateRandomBytes(s)
 	return base64.URLEncoding.EncodeToString(b), err
+}
+
+// HMACBytes returns HMAC as bytes
+func HMACBytes(h func() hash.Hash, s, k []byte) string {
+	mac := hmac.New(h, k)
+	mac.Write(s)
+	return fmt.Sprintf("%x", mac.Sum(nil))
+}
+
+// HMAC returns HMAC as string
+func HMAC(h func() hash.Hash, s, k string) string {
+	return string(HMACBytes(h, []byte(s), []byte(k)))
+}
+
+// HMACSha1Bytes returns sha1 encrypted HMAC as bytes
+func HMACSha1Bytes(s, k []byte) string {
+	return HMACBytes(sha1.New, s, k)
+}
+
+// HMACSha1 returns sha1 encrypted HMAC as string
+func HMACSha1(s, k string) string {
+	return HMAC(sha1.New, s, k)
+}
+
+// HMACSha256Bytes returns sha256 encrypted HMAC as bytes
+func HMACSha256Bytes(s, k []byte) string {
+	return HMACBytes(sha256.New, s, k)
+}
+
+// HMACSha256 returns sha256 encrypted HMAC as bytes
+func HMACSha256(s, k string) string {
+	return HMAC(sha256.New, s, k)
+}
+
+// Sha1Bytes calculates Sha1 hash
+func Sha1Bytes(s []byte) string {
+	h := sha1.New()
+	h.Write(s)
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

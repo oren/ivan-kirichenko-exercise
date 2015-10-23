@@ -22,6 +22,7 @@ type Config struct {
 	OauthAppId       string `yaml:"oauth_appid"`
 	OauthSecret      string `yaml:"oauth_secret"`
 	OauthRedirectUrl string `yaml:"oauth_redirect"`
+	SessionSecret    string `yaml:"session_secret"`
 }
 
 type Runnable interface {

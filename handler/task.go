@@ -10,7 +10,7 @@ import (
 )
 
 // GetGetTaskHandler creates HTTP handler for Get Task operation
-func GetGetTaskHandler(db *gorm.DB) func(c *echo.Context) error {
+func GetGetTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
@@ -27,7 +27,7 @@ func GetGetTaskHandler(db *gorm.DB) func(c *echo.Context) error {
 }
 
 // GetGetTaskHandler creates HTTP handler for Create Task operation
-func GetCreateTaskHandler(db *gorm.DB) func(c *echo.Context) error {
+func GetCreateTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		task := model.Task{}
 		if err := c.Bind(&task); err != nil {
@@ -43,7 +43,7 @@ func GetCreateTaskHandler(db *gorm.DB) func(c *echo.Context) error {
 }
 
 // GetGetTaskHandler creates HTTP handler for Update Task operation
-func GetUpdateTaskHandler(db *gorm.DB) func(c *echo.Context) error {
+func GetUpdateTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
@@ -65,7 +65,7 @@ func GetUpdateTaskHandler(db *gorm.DB) func(c *echo.Context) error {
 }
 
 // GetGetTaskHandler creates HTTP handler for Delete Task operation
-func GetDeleteTaskHandler(db *gorm.DB) func(c *echo.Context) error {
+func GetDeleteTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
