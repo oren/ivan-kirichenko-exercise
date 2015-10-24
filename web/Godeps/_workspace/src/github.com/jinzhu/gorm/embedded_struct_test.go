@@ -15,7 +15,7 @@ type HNPost struct {
 
 type EngadgetPost struct {
 	BasePost BasePost `gorm:"embedded"`
-	ImageUrl string
+	ImageURL string
 }
 
 func TestSaveAndQueryEmbeddedStruct(t *testing.T) {

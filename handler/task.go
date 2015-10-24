@@ -26,7 +26,7 @@ func GetGetTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-// GetGetTaskHandler creates HTTP handler for Create Task operation
+// GetCreateTaskHandler creates HTTP handler for Create Task operation
 func GetCreateTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		task := model.Task{}
@@ -42,7 +42,7 @@ func GetCreateTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-// GetGetTaskHandler creates HTTP handler for Update Task operation
+// GetUpdateTaskHandler creates HTTP handler for Update Task operation
 func GetUpdateTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -64,7 +64,7 @@ func GetUpdateTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-// GetGetTaskHandler creates HTTP handler for Delete Task operation
+// GetDeleteTaskHandler creates HTTP handler for Delete Task operation
 func GetDeleteTaskHandler(db *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)

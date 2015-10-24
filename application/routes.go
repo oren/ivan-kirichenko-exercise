@@ -22,21 +22,21 @@ func (a *app) initRoutes() {
 	// routes for auth
 
 	conf := oauth2.Config{
-		ClientID:     a.config.OauthAppId,
-		ClientSecret: a.config.OauthSecret,
-		RedirectURL:  a.config.OauthRedirectUrl,
+		ClientID:     a.config.OAuthAppID,
+		ClientSecret: a.config.OAuthSecret,
+		RedirectURL:  a.config.OAuthRedirectURL,
 		Scopes:       []string{},
 		Endpoint:     facebook.Endpoint,
 	}
 	a.server.Get("/auth",
-		handler.GetOauthHandler(
+		handler.GetOAuthHandler(
 			conf,
 			a.config.SessionSecret,
 			a.csrfStorage,
 		),
 	)
 	a.server.Get("/auth_verify",
-		handler.GetOauthVerifyHandler(
+		handler.GetOAuthVerifyHandler(
 			conf,
 			a.config.JwtSecret,
 			a.config.SessionSecret,

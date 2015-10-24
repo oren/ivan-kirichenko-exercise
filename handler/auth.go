@@ -14,17 +14,19 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const DefaultTokenExpiration time.Duration = 5 * time.Minute
+const defaultTokenExpiration time.Duration = 5 * time.Minute
 const issuer string = "demoapp"
 const bearer = "Bearer"
 
+// TokenStorage defines some key-value storage for tokens by session id
 type TokenStorage interface {
 	Set(k string, x interface{}, d time.Duration)
 	Get(k string) (interface{}, bool)
 	Delete(k string)
 }
 
-// A JSON Web Token middleware
+// GetJwtAuthHandler creates a handler function that performs authorization
+// based on JWT token in incoming request. Can be used as middleware
 func GetJwtAuthHandler(jwtSecret string) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 
@@ -36,68 +38,77 @@ func GetJwtAuthHandler(jwtSecret string) echo.HandlerFunc {
 		auth := c.Request().Header.Get("Authorization")
 		l := len(bearer)
 
-		if len(auth) > l+1 && auth[:l] == bearer {
-			_, err := jwt.Parse(auth[l+1:], func(token *jwt.Token) (interface{}, error) {
+		if len(auth) <= l+1 || auth[:l] != bearer {
+			return echo.NewHTTPError(http.StatusUnauthorized,
+				NewApiError("no or incorrect authorization token provided").String(),
+			)
+		}
 
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-				}
+		_, err := jwt.Parse(auth[l+1:], func(token *jwt.Token) (interface{}, error) {
 
-				if iss, ok := token.Claims["iss"].(string); !ok {
-					return nil, errors.New("issuer not provided")
-				} else if iss != issuer {
-					return nil, errors.New("incorrect issuer provided")
-				}
-
-				accessToken, found := token.Claims["access_token"].(string)
-				if !found {
-					return nil, errors.New("access token not provided")
-				}
-
-				expirationTime, _ := token.Claims["exp"].(float64)
-				if int64(expirationTime) < time.Now().Unix() {
-					return nil, errors.New("access token has expired, try to authenticate again")
-				}
-
-				return getJwtSignature(jwtSecret, accessToken), nil
-			})
-
-			if err != nil {
-				c.JSON(http.StatusUnauthorized, NewApiError(err.Error()))
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 			}
 
-			return echo.NewHTTPError(http.StatusUnauthorized)
+			if iss, ok := token.Claims["iss"].(string); !ok {
+				return nil, errors.New("issuer not provided")
+			} else if iss != issuer {
+				return nil, errors.New("incorrect issuer provided")
+			}
+
+			accessToken, found := token.Claims["access_token"].(string)
+			if !found {
+				return nil, errors.New("access token not provided")
+			}
+
+			expirationTime, _ := token.Claims["exp"].(float64)
+			if int64(expirationTime) < time.Now().Unix() {
+				return nil, errors.New("access token has expired, try to authenticate again")
+			}
+
+			return getJwtSignature(jwtSecret, accessToken), nil
+		})
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized,
+				NewApiError(err.Error()).String(),
+			)
 		}
-		c.JSON(http.StatusUnauthorized, NewApiError("no or incorrect authorization token provided"))
-		return echo.NewHTTPError(http.StatusUnauthorized)
+
+		return nil
 	}
 }
 
-func GetOauthHandler(conf oauth2.Config, sessionSecret string, csrfStorage TokenStorage) echo.HandlerFunc {
-	// oauthUrlResponse is a type which is used only within oauth handler
-	type oauthUrlResponse struct {
-		Url     string `json:"url"`
+// GetOAuthHandler creates a handler function that starts authorization process
+// using Facebook as OAuth provider
+func GetOAuthHandler(conf oauth2.Config, sessionSecret string, csrfStorage TokenStorage) echo.HandlerFunc {
+	// oauthURLResponse is a type which is used only within oauth handler
+	type oauthURLResponse struct {
+		URL     string `json:"url"`
 		Message string `json:"message"`
 	}
 
 	return func(c *echo.Context) error {
 		// in general I must to ensure that sessionID is unique, but let's simplify
 		// for test task
-		sessionId, err := lib.GenerateRandomString(32)
+		sessionID, err := lib.GenerateRandomString(32)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, NewApiError(err.Error()))
 		}
 
-		csrfToken := generateCsrfToken(sessionId, sessionSecret)
+		csrfToken := generateCsrfToken(sessionID, sessionSecret)
 		// in order to increase TTL of the cached value, let's save it as late as possible
-		defer csrfStorage.Set(csrfToken, sessionId, DefaultTokenExpiration)
+		defer csrfStorage.Set(csrfToken, sessionID, defaultTokenExpiration)
 		url := conf.AuthCodeURL(csrfToken, oauth2.AccessTypeOffline)
 
-		return c.JSON(http.StatusOK, oauthUrlResponse{url, "please use this url to authenticate with facebook"})
+		return c.JSON(http.StatusOK, oauthURLResponse{url, "please use this url to authenticate with facebook"})
 	}
 }
 
-func GetOauthVerifyHandler(conf oauth2.Config, jwtSecret, sessionSecret string, csrfStorage TokenStorage) echo.HandlerFunc {
+// GetOAuthVerifyHandler creates a handler function that checks response of
+// OAuth provider (Facebook), performs authorization of the user in our system
+// and responds with JWT that should be used as access token to our API
+func GetOAuthVerifyHandler(conf oauth2.Config, jwtSecret, sessionSecret string, csrfStorage TokenStorage) echo.HandlerFunc {
 	// oauthVerifyResponse is a type which is used only within oauth verify handler
 	type oauthVerifyResponse struct {
 		Token   string `json:"jwt_token"`
@@ -120,13 +131,13 @@ func GetOauthVerifyHandler(conf oauth2.Config, jwtSecret, sessionSecret string, 
 		}
 		defer csrfStorage.Delete(csrfToken)
 
-		var sessionId string
-		if cachedSessionId, ok := csrfStorage.Get(csrfToken); !ok {
+		var sessionID string
+		if cachedSessionID, ok := csrfStorage.Get(csrfToken); !ok {
 			return c.JSON(http.StatusGone, NewApiError("oauth code has expired, try again"))
-		} else if sessionId, ok = cachedSessionId.(string); !ok {
+		} else if sessionID, ok = cachedSessionID.(string); !ok {
 			return c.JSON(http.StatusGone, NewApiError("oauth code has expired, try again"))
 		}
-		if !isCsrfTokenMatchSession(csrfToken, sessionId, sessionSecret) {
+		if !isCsrfTokenMatchSession(csrfToken, sessionID, sessionSecret) {
 			return c.JSON(http.StatusGone, NewApiError("CSRF attack detected"))
 		}
 
@@ -160,10 +171,10 @@ func getJwtSignature(jwtSecret, accessToken string) []byte {
 	return buffer.Bytes()
 }
 
-func generateCsrfToken(sessionId, sessionSecret string) string {
-	return lib.HMACSha1(sessionSecret, sessionId)
+func generateCsrfToken(sessionID, sessionSecret string) string {
+	return lib.HMACSha1(sessionSecret, sessionID)
 }
 
-func isCsrfTokenMatchSession(csrfToken, sessionId, sessionSecret string) bool {
-	return csrfToken == generateCsrfToken(sessionId, sessionSecret)
+func isCsrfTokenMatchSession(csrfToken, sessionID, sessionSecret string) bool {
+	return csrfToken == generateCsrfToken(sessionID, sessionSecret)
 }

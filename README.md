@@ -35,3 +35,12 @@ type Task struct {
     IsCompleted bool
 }
 ```
+
+# Design decisions
+
+- error messages for simplicity were not declared as constants. This approach allows to quick find errors in code as they appear in logs.
+- there are separate packages for models and handlers, but currently CRUD logic is located in handlers code for simplicity. Ideally we should have input and output structures in handlers package and Model structures in model package.
+- authorization logic uses session storage in order to check CSRF tokens. Currently simple in-memory storage is used. But storage is passed as interface, so we can quickly substitute it with any other kind of storage (memcache, Aerospike, mysql, etc) we want.
+- for simplicity SQLite datastorage is being used. Hopefully, golang database logic allows to change datastorage quickly. We can switch it with MySQL, for instance.
+- logger is created in `main.go` in order to log messages that can appear outside of the application to the same logging channel.
+- 

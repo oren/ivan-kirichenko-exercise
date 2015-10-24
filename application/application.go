@@ -19,16 +19,18 @@ type Config struct {
 	ListenAddress    string `yaml:"listen"`
 	DbFile           string `yaml:"db_file"`
 	JwtSecret        string `yaml:"jwt_secret"`
-	OauthAppId       string `yaml:"oauth_appid"`
-	OauthSecret      string `yaml:"oauth_secret"`
-	OauthRedirectUrl string `yaml:"oauth_redirect"`
+	OAuthAppID       string `yaml:"oauth_appid"`
+	OAuthSecret      string `yaml:"oauth_secret"`
+	OAuthRedirectURL string `yaml:"oauth_redirect"`
 	SessionSecret    string `yaml:"session_secret"`
 }
 
+// Runnable defines an interface that can run
 type Runnable interface {
 	Run()
 }
 
+// Migratable defines an interface that can run data migration
 type Migratable interface {
 	Migrate() error
 }
@@ -79,6 +81,7 @@ func (a *app) Run() {
 	a.server.Run(a.config.ListenAddress)
 }
 
+// Migrate runs basic migrations for this simple application
 func (a *app) Migrate() error {
 	return a.db.AutoMigrate(&model.Task{}).Error
 }
